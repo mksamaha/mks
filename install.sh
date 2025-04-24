@@ -47,7 +47,7 @@ mkdir /media/data
 mount /dev/sda3 /media/data
 
 # Download Windows Server 2016 ISO and VirtIO drivers ISO
-wget -O /media/data/win2016.iso "https://archive.org/download/WS2016X6411636692ViVuOnline/WS_2016_x64_11636692_ViVuOnline.iso"
+wget -O /media/data/win2016.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195174&clcid=0x409&culture=en-us&country=US"
 wget -O /media/data/virtio.iso "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.271-1/virtio-win-0.1.271.iso"
 
 # Mount Windows ISO and copy its content to the boot partition
