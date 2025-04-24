@@ -5,7 +5,9 @@ trap 'echo "An error occurred at line $LINENO. Exiting script." >&2' ERR
 
 echo "Updating system and installing required packages..."
 apt update -y && apt upgrade -y
-apt install --no-install-recommends grub2 wimtools ntfs-3g rsync wget parted gdisk -y
+
+# Install only the essential packages without initramfs-tools
+apt install --no-install-recommends grub-pc grub2-common parted gdisk ntfs-3g wget rsync wimtools -y
 
 echo "Calculating disk size and creating partitions..."
 disk_size_gb=$(parted /dev/sda --script print | awk '/^Disk \/dev\/sda:/ {print int($3)}')
@@ -61,8 +63,9 @@ mount -o loop virtio.iso winfile
 mkdir -p /mnt/sources/virtio
 rsync -avz --progress winfile/* /mnt/sources/virtio
 umount winfile
+rm -rf winfile
 
-echo "Modifying boot.wim with VirtIO drivers..."
+echo "Modifying boot.wim with VirtIO drivers (if available)..."
 cd /mnt/sources
 if [ -f boot.wim ]; then
   echo "add virtio /virtio_drivers" > cmd.txt
@@ -71,6 +74,6 @@ else
   echo "boot.wim not found. Skipping modification."
 fi
 
-echo "All steps completed successfully. Rebooting in 10 seconds..."
+echo "All tasks completed successfully. Rebooting in 10 seconds..."
 sleep 10
 reboot
