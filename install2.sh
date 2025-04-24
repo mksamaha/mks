@@ -2,38 +2,41 @@
 
 set -e
 
-# Update and install required packages
+# Prevent initramfs-tools errors in Live environment
+apt-mark hold initramfs-tools || true
+
+# Update system and install required packages
 apt update -y && apt upgrade -y
 apt install -y parted grub2 grub-pc wimtools ntfs-3g rsync wget curl
 
-# Create GPT partition table
+# Create GPT partition table on /dev/sda
 parted /dev/sda --script mklabel gpt
 
-# Create BIOS Boot Partition
+# Create BIOS Boot Partition (required for GRUB on GPT)
 parted /dev/sda --script mkpart primary 1MiB 2MiB
 parted /dev/sda --script set 1 bios_grub on
 
-# Create 60GB partition for Windows
+# Create 60GB partition for Windows system
 parted /dev/sda --script mkpart primary ntfs 2MiB 61443MiB
 
-# Create data partition for ISO and drivers
+# Create partition for data and drivers
 parted /dev/sda --script mkpart primary ntfs 61443MiB 100%
 
-# Reload partition table
+# Refresh partition table
 partprobe /dev/sda
 sleep 5
 
-# Format the partitions (skip BIOS boot)
+# Format Windows and data partitions
 mkfs.ntfs -f /dev/sda2
 mkfs.ntfs -f /dev/sda3
 
-# Mount system partition
+# Mount Windows system partition
 mount /dev/sda2 /mnt
 
-# Install GRUB
+# Install GRUB bootloader
 grub-install --target=i386-pc --boot-directory=/mnt/boot /dev/sda
 
-# Configure GRUB for Windows Installer
+# Create GRUB configuration file for Windows installer
 mkdir -p /mnt/boot/grub
 cat <<EOF > /mnt/boot/grub/grub.cfg
 menuentry "Windows Server 2016 Installer" {
@@ -51,18 +54,20 @@ mount /dev/sda3 /media/data
 # Download Windows Server 2016 ISO
 wget -O /media/data/win2016.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195174&clcid=0x409"
 
-# Download VirtIO driver ISO
+# Download VirtIO Drivers ISO
 wget -O /media/data/virtio.iso "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.271-1/virtio-win-0.1.271.iso"
 
-# Mount and copy Windows ISO contents
+# Mount and copy Windows files
 mkdir -p /root/wincd
 mount -o loop /media/data/win2016.iso /root/wincd
 rsync -avh --progress /root/wincd/ /mnt
 umount /root/wincd
 
-# Mount VirtIO drivers for installation
+# Mount VirtIO drivers to make them accessible during installation
 mkdir -p /mnt/sources/virtio
 mount -o loop /media/data/virtio.iso /mnt/sources/virtio
 
-# Done
-echo "Windows Server 2016 setup files are ready. Reboot to begin installation."
+# Optional: automatic reboot after 10 seconds
+echo "✅ Setup complete. Rebooting in 10 seconds..."
+sleep 10
+reboot
