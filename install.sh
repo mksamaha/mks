@@ -36,7 +36,7 @@ cd /mnt/boot/grub
 cat <<EOF > grub.cfg
 menuentry "Windows Installer" {
     insmod ntfs
-    search --set=root --file=/bootmgr
+    search --set=root --file /bootmgr
     ntldr /bootmgr
     boot
 }
