@@ -1,4 +1,7 @@
 #!/bin/bash
+#Serial: KN7PC-CJ492-TRM7Q-YY4R4-JHQMC
+
+#https://archive.org/details/WinServer2012WebServer
 
 apt update -y && apt upgrade -y
 
@@ -64,9 +67,9 @@ cd /root/windisk
 
 mkdir winfile
 
-wget -O win16.iso --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" https://go.microsoft.com/fwlink/p/?LinkID=2195174&clcid=0x409&culture=en-us&country=US
+wget -O win10.iso --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" https://archive.org/download/WinServer2012WebServer/9200%20ServerWeb.iso
 
-mount -o loop win16.iso winfile
+mount -o loop win10.iso winfile
 
 rsync -avz --progress winfile/* /mnt
 
