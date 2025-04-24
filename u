@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -e
+
+# === Configuration ===
+WINDOWS_ISO_URL="https://go.microsoft.com/fwlink/p/?LinkID=2195174&clcid=0x409&culture=en-us&country=US"
+VIRTIO_URL="https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.271-1/virtio-win-0.1.271.iso"
+TARGET_DISK="/dev/sda"
+WIN_PART="${TARGET_DISK}3"
+
+# === Install required tools ===
+echo "[+] Installing required packages..."
+apt update -y
+apt install -y parted grub-pc grub2 wimtools ntfs-3g wget rsync curl
+
+# === Create new NTFS partition for Windows ===
+echo "[+] Creating NTFS partition for Windows..."
+parted $TARGET_DISK --script mkpart primary ntfs 50GB 100%
+mkfs.ntfs -f $WIN_PART
+
+# === Prepare directories ===
+echo "[+] Preparing directories..."
+mkdir -p /root/iso /mnt/win /mnt/virtio /mnt/winsetup
+
+# === Download ISO files ===
+echo "[+] Downloading Windows ISO and VirtIO drivers..."
+cd /root/iso
+wget -O windows.iso "$WINDOWS_ISO_URL"
+wget -O virtio.iso "$VIRTIO_URL"
+
+# === Mount and copy Windows installation files ===
+echo "[+] Mounting and copying Windows setup files..."
+mount $WIN_PART /mnt/win
+mount -o loop /root/iso/windows.iso /mnt/winsetup
+rsync -avh /mnt/winsetup/ /mnt/win
+umount /mnt/winsetup
+
+# === Inject VirtIO drivers into boot.wim ===
+echo "[+] Injecting VirtIO drivers into boot.wim..."
+mount -o loop /root/iso/virtio.iso /mnt/virtio
+echo 'add /mnt/virtio /virtio' > /root/virtio_cmd.txt
+wimlib-imagex update /mnt/win/sources/boot.wim 2 < /root/virtio_cmd.txt
+
+# === Configure GRUB to boot Windows installer ===
+echo "[+] Installing GRUB and setting up boot menu..."
+mkdir -p /mnt/win/boot/grub
+grub-install --boot-directory=/mnt/win/boot $TARGET_DISK
+
+cat <<EOF > /mnt/win/boot/grub/grub.cfg
+menuentry "Windows Server Installer" {
+    insmod ntfs
+    search --set=root --file=/bootmgr
+    ntldr /bootmgr
+}
+EOF
+
+# === Final cleanup ===
+umount /mnt/win
+update-grub
+
+echo "[✔] Setup complete. Reboot the server and select 'Windows Server Installer' from GRUB to start Windows setup."
