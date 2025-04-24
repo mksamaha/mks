@@ -1,3 +1,20 @@
+apt update -y && apt upgrade -y
+apt install parted grub2 wimtools ntfs-3g -y
+
+parted /dev/sda --script mklabel gpt
+
+parted /dev/sda --script mkpart primary ntfs 1MiB 61441MiB
+
+parted /dev/sda --script mkpart primary ntfs 61441MiB 100%
+
+partprobe /dev/sda
+sleep 10
+partprobe /dev/sda
+sleep 10
+
+mkfs.ntfs -f /dev/sda1
+mkfs.ntfs -f /dev/sda2
+
 mount /dev/sda1 /mnt
 
 grub-install --boot-directory=/mnt/boot /dev/sda
