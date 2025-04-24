@@ -1,6 +1,6 @@
 apt update
 sudo apt update -y
-sudo apt upgrade -y
+
 sudo su
 apt install gparted filezilla grub2 wimtools -y
 gparted
