@@ -52,7 +52,7 @@ wget -O /media/data/virtio.iso "https://fedorapeople.org/groups/virt/virtio-win/
 
 # Mount Windows ISO and copy its content to the boot partition
 mkdir -p /root/wincd
-mount -o loop /media/data/win2016.iso /root/wincd
+mount -o loop /media/data/win2012.iso /root/wincd
 rsync -avz --progress /root/wincd/* /mnt
 umount /root/wincd
 
@@ -66,7 +66,7 @@ cd /mnt/sources
 touch cmd.txt
 
 
-echo 'add /mnt/sources/virtio /virtio' >> cmd.txt
+echo 'add /mnt/sources/virtio /virtio' > cmd.txt
 
 wimlib-imagex update /mnt/sources/boot.wim 2 < cmd.txt
 
