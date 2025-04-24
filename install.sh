@@ -1,36 +1,3 @@
-sudo su
-
-apt update
-
-apt install -y gparted filezilla grub2 wimtools gdisk rsync wget curl
-umount /dev/sda* || true
-wipefs -a /dev/sda
-fdisk /dev/sda
-
-o
-n
-p
-1
-+60000M
-t
-1
-7
-
-
-n
-p
-2
-enter
-enter
-t
-2
-7
-w
-
-mkfs.ntfs -f /dev/sda1
-mkfs.ntfs -f /dev/sda2
-
-
 mount /dev/sda1 /mnt
 
 grub-install --boot-directory=/mnt/boot /dev/sda
