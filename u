@@ -13,36 +13,43 @@ echo "[+] Installing required packages..."
 apt update -y
 apt install -y parted grub-pc grub2 wimtools ntfs-3g wget rsync curl
 
-# === Create new NTFS partition for Windows ===
+# === Create and format Windows partition ===
 echo "[+] Creating NTFS partition for Windows..."
-parted $TARGET_DISK --script mkpart primary ntfs 50GB 100%
+parted $TARGET_DISK --script mkpart primary ntfs 80GB 100%
 mkfs.ntfs -f $WIN_PART
 
-# === Prepare directories ===
-echo "[+] Preparing directories..."
-mkdir -p /root/iso /mnt/win /mnt/virtio /mnt/winsetup
+# === Mount the Windows partition ===
+mkdir -p /mnt/win
+mount $WIN_PART /mnt/win
 
-# === Download ISO files ===
+# === Create ISO storage directories on Windows partition ===
+mkdir -p /mnt/win/_iso
+cd /mnt/win/_iso
+
+# === Download ISOs directly to Windows partition ===
 echo "[+] Downloading Windows ISO and VirtIO drivers..."
-cd /root/iso
 wget -O windows.iso "$WINDOWS_ISO_URL"
 wget -O virtio.iso "$VIRTIO_URL"
 
-# === Mount and copy Windows installation files ===
-echo "[+] Mounting and copying Windows setup files..."
-mount $WIN_PART /mnt/win
-mount -o loop /root/iso/windows.iso /mnt/winsetup
+# === Mount and extract Windows ISO ===
+mkdir -p /mnt/winsetup
+mount -o loop /mnt/win/_iso/windows.iso /mnt/winsetup
+
+echo "[+] Copying Windows setup files to main partition..."
 rsync -avh /mnt/winsetup/ /mnt/win
+
 umount /mnt/winsetup
 
-# === Inject VirtIO drivers into boot.wim ===
-echo "[+] Injecting VirtIO drivers into boot.wim..."
-mount -o loop /root/iso/virtio.iso /mnt/virtio
-echo 'add /mnt/virtio /virtio' > /root/virtio_cmd.txt
-wimlib-imagex update /mnt/win/sources/boot.wim 2 < /root/virtio_cmd.txt
+# === Mount and inject VirtIO drivers into boot.wim ===
+mkdir -p /mnt/virtio
+mount -o loop /mnt/win/_iso/virtio.iso /mnt/virtio
 
-# === Configure GRUB to boot Windows installer ===
-echo "[+] Installing GRUB and setting up boot menu..."
+echo "[+] Injecting VirtIO drivers into boot.wim..."
+echo 'add /mnt/virtio /virtio' > /mnt/win/_iso/virtio_cmd.txt
+wimlib-imagex update /mnt/win/sources/boot.wim 2 < /mnt/win/_iso/virtio_cmd.txt
+
+# === Install GRUB and configure boot menu ===
+echo "[+] Installing GRUB and configuring boot entry..."
 mkdir -p /mnt/win/boot/grub
 grub-install --boot-directory=/mnt/win/boot $TARGET_DISK
 
@@ -54,8 +61,9 @@ menuentry "Windows Server Installer" {
 }
 EOF
 
-# === Final cleanup ===
+# === Finalization ===
 umount /mnt/win
 update-grub
 
-echo "[✔] Setup complete. Reboot the server and select 'Windows Server Installer' from GRUB to start Windows setup."
+echo "[✔] Setup complete. Windows ISO and drivers are preserved in /dev/sda3 under _iso/"
+echo "[✔] Reboot and select 'Windows Server Installer' from GRUB to begin installation."
