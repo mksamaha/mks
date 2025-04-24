@@ -9,20 +9,7 @@ apt install -f -y || true
 
 # Update system & install required tools
 apt update -y && apt upgrade -y
-apt install -y parted grub2 grub-pc ntfs-3g
-
-# Repartition (skip if already partitioned and formatted)
-parted /dev/sda --script mklabel gpt
-parted /dev/sda --script mkpart primary 1MiB 2MiB
-parted /dev/sda --script set 1 bios_grub on
-parted /dev/sda --script mkpart primary ntfs 2MiB 61443MiB
-parted /dev/sda --script mkpart primary ntfs 61443MiB 100%
-partprobe /dev/sda
-sleep 5
-
-# Format Windows and data partitions
-mkfs.ntfs -f /dev/sda2
-mkfs.ntfs -f /dev/sda3
+apt install -y grub2 grub-pc ntfs-3g
 
 # Mount Windows target partition
 mount /dev/sda2 /mnt
