@@ -3,13 +3,11 @@
 set -e
 trap 'echo "An error occurred at line $LINENO. Exiting script." >&2' ERR
 
-echo "Updating system and installing required packages..."
+echo "Updating system and installing essential packages..."
 apt update -y && apt upgrade -y
-
-# Install only the essential packages without initramfs-tools
 apt install --no-install-recommends grub-pc grub2-common parted gdisk ntfs-3g wget rsync wimtools -y
 
-echo "Calculating disk size and creating partitions..."
+echo "Partitioning disk..."
 disk_size_gb=$(parted /dev/sda --script print | awk '/^Disk \/dev\/sda:/ {print int($3)}')
 disk_size_mb=$((disk_size_gb * 1024))
 part_size_mb=$((disk_size_mb / 4))
@@ -25,8 +23,8 @@ sleep 5
 echo "Formatting partitions..."
 mkfs.ntfs -f /dev/sda1
 mkfs.ntfs -f /dev/sda2
-echo "Partitions formatted as NTFS."
 
+echo "Mounting partitions..."
 mount /dev/sda1 /mnt
 mkdir -p /root/windisk
 mount /dev/sda2 /root/windisk
@@ -34,14 +32,14 @@ mount /dev/sda2 /root/windisk
 echo "Installing GRUB bootloader..."
 grub-install --root-directory=/mnt /dev/sda
 
-echo "Creating grub.cfg for Windows boot..."
+echo "Creating grub.cfg..."
 mkdir -p /mnt/boot/grub
 cat <<EOF > /mnt/boot/grub/grub.cfg
 menuentry "Windows Installer" {
-	insmod ntfs
-	search --set=root --file=/bootmgr
-	ntldr /bootmgr
-	boot
+    insmod ntfs
+    search --set=root --file=/bootmgr
+    ntldr /bootmgr
+    boot
 }
 EOF
 
@@ -65,15 +63,16 @@ rsync -avz --progress winfile/* /mnt/sources/virtio
 umount winfile
 rm -rf winfile
 
-echo "Modifying boot.wim with VirtIO drivers (if available)..."
+echo "Checking and modifying boot.wim (if available)..."
 cd /mnt/sources
 if [ -f boot.wim ]; then
-  echo "add virtio /virtio_drivers" > cmd.txt
-  wimlib-imagex update boot.wim 2 < cmd.txt
+    echo "add virtio /virtio_drivers" > cmd.txt
+    wimlib-imagex update boot.wim 2 < cmd.txt
+    echo "boot.wim modified with VirtIO drivers."
 else
-  echo "boot.wim not found. Skipping modification."
+    echo "boot.wim not found. Skipping modification."
 fi
 
-echo "All tasks completed successfully. Rebooting in 10 seconds..."
+echo "Installation complete. Rebooting in 10 seconds..."
 sleep 10
 reboot
