@@ -46,8 +46,8 @@ EOF
 mkdir /media/data
 mount /dev/sda3 /media/data
 
-# Download Windows Server 2016 ISO and VirtIO drivers ISO
-wget -O /media/data/win2016.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195174&clcid=0x409&culture=en-us&country=US"
+# Download Windows Server 2012 ISO and VirtIO drivers ISO
+wget -O /media/data/win2012.iso "https://go.microsoft.com/fwlink/p/?LinkID=2195443&clcid=0x409&culture=en-us&country=US"
 wget -O /media/data/virtio.iso "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.271-1/virtio-win-0.1.271.iso"
 
 # Mount Windows ISO and copy its content to the boot partition
@@ -56,4 +56,17 @@ mount -o loop /media/data/win2016.iso /root/wincd
 rsync -avz --progress /root/wincd/* /mnt
 umount /root/wincd
 
-#
+mkdir -p /mnt/sources/virtio
+mount -o loop /media/data/virtio.iso /mnt/sources/virtio
+
+sudo apt install wimtools -y
+
+cd /mnt/sources
+
+touch cmd.txt
+
+
+echo 'add /mnt/sources/virtio /virtio' >> cmd.txt
+
+wimlib-imagex update /mnt/sources/boot.wim 2 < cmd.txt
+
