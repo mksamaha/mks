@@ -35,19 +35,9 @@ sleep 30
 mkfs.ntfs -f /dev/sda1
 mkfs.ntfs -f /dev/sda2
 
-echo "NTFS partitions created"
-
-echo -e "r\ng\np\nw\nY\n" | gdisk /dev/sda
-
 mount /dev/sda1 /mnt
 
-#Prepare directory for the Windows disk
-cd ~
-mkdir windisk
-
-mount /dev/sda2 windisk
-
-grub-install --root-directory=/mnt /dev/sda
+grub-install --boot-directory=/mnt/boot /dev/sda
 
 #Edit GRUB configuration
 cd /mnt/boot/grub
@@ -59,6 +49,16 @@ menuentry "windows installer" {
 	boot
 }
 EOF
+
+
+mkdir /media/data
+mount /dev/sda2 /media/data
+
+wget -O /media/data/win2016.iso "https://archive.org/download/WS2016X6411636692ViVuOnline/WS_2016_x64_11636692_ViVuOnline.iso"
+
+wget -O /media/data/virtio.iso "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.271-1/virtio-win-0.1.271.iso"
+
+mkdir -p /root/wincd
 
 
 # Navigate to the windisk directory, or create it if it doesn't exist, and navigate into it
