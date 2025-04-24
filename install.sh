@@ -1,39 +1,35 @@
-#!/bin/bash
+sudo su
 
-apt update -y
+apt update
 
-apt install grub2 wimtools ntfs-3g -y
+apt install -y gparted filezilla grub2 wimtools gdisk rsync wget curl
+umount /dev/sda* || true
+wipefs -a /dev/sda
+fdisk /dev/sda
 
-#Get the disk size in GB and convert to MB
-disk_size_gb=$(parted /dev/sda --script print | awk '/^Disk \/dev\/sda:/ {print int($3)}')
-disk_size_mb=$((disk_size_gb * 1024))
+o
+n
+p
+1
++60000M
+t
+1
+7
 
-#Calculate partition size (25% of total size)
-part_size_mb=$((disk_size_mb / 4))
 
-#Create GPT partition table
-parted /dev/sda --script -- mklabel gpt
+n
+p
+2
+enter
+enter
+t
+2
+7
+w
 
-#Create two partitions
-parted /dev/sda --script -- mkpart primary ntfs 1MB ${part_size_mb}MB
-parted /dev/sda --script -- mkpart primary ntfs ${part_size_mb}MB $((2 * part_size_mb))MB
-
-#Inform kernel of partition table changes
-partprobe /dev/sda
-
-sleep 30
-
-partprobe /dev/sda
-
-sleep 30
-
-partprobe /dev/sda
-
-sleep 30 
-
-#Format the partitions
 mkfs.ntfs -f /dev/sda1
 mkfs.ntfs -f /dev/sda2
+
 
 mount /dev/sda1 /mnt
 
