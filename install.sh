@@ -16,8 +16,7 @@ mkfs.ntfs -f /dev/sda1
 mkfs.ntfs -f /dev/sda2
 
 mount /dev/sda1 /mnt
-
-grub-install --boot-directory=/mnt/boot /dev/sda
+grub-install --target=i386-pc --boot-directory=/mnt/boot /dev/sda
 
 #Edit GRUB configuration
 cd /mnt/boot/grub
