@@ -1,5 +1,7 @@
 #!/bin/bash
 
+https://archive.org/download/en_windows_server_2016_x64_dvd_9327751/en_windows_server_2016_x64_dvd_9327751.iso
+
 apt update -y && apt upgrade -y
 
 apt install grub2 wimtools ntfs-3g -y
