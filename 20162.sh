@@ -1,8 +1,4 @@
 #!/bin/bash
-
-
-
-#!/bin/bash
 #Standard Server (Desktop/Core) WC2BQ-8NRM3-FDDYY-2BFGV-KHKQY
 #Datacenter Server (Desktop/Core) CB7KF-BWN84-R7R2Y-793K2-8XDDG
 #https://archive.org/details/en_windows_server_2016_x64_dvd_9718492
@@ -95,4 +91,4 @@ echo 'add virtio /virtio_drivers' >> cmd.txt
 
 wimlib-imagex update boot.wim 2 < cmd.txt
 
-reboot	
+reboot
