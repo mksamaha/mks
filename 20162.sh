@@ -1,6 +1,11 @@
 #!/bin/bash
 
-https://archive.org/download/en_windows_server_2016_x64_dvd_9327751/en_windows_server_2016_x64_dvd_9327751.iso
+
+
+#!/bin/bash
+#Standard Server (Desktop/Core) WC2BQ-8NRM3-FDDYY-2BFGV-KHKQY
+#Datacenter Server (Desktop/Core) CB7KF-BWN84-R7R2Y-793K2-8XDDG
+#https://archive.org/details/en_windows_server_2016_x64_dvd_9718492
 
 apt update -y && apt upgrade -y
 
@@ -66,7 +71,7 @@ cd /root/windisk
 
 mkdir winfile
 
-wget -O win10.iso --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" https://bit.ly/4aCjkM2
+wget -O win10.iso --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" https://archive.org/download/en_windows_server_2016_x64_dvd_9327751/en_windows_server_2016_x64_dvd_9327751.iso
 
 mount -o loop win10.iso winfile
 
@@ -90,4 +95,4 @@ echo 'add virtio /virtio_drivers' >> cmd.txt
 
 wimlib-imagex update boot.wim 2 < cmd.txt
 
-reboot
+reboot	
