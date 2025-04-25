@@ -1,4 +1,6 @@
 
+apt update -y && apt upgrade -y
+
 umount /dev/sda1 || true
 mkfs.ntfs -f /dev/sda1
 
